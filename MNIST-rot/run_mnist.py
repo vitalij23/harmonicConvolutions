@@ -5,7 +5,7 @@ import os
 import random
 import sys
 import time
-import urllib2
+import urllib.request as urllib2
 import zipfile
 sys.path.append('../')
 
@@ -121,16 +121,17 @@ def get_learning_rate(args, current, best, counter, learning_rate):
 
 def main(args):
    """The magic happens here"""
-   tf.reset_default_graph()
+   import tensorflow.compat.v1 as tf2
+   tf2.disable_v2_behavior()
    ##### SETUP AND LOAD DATA #####
    args, data = settings(args)
    
    ##### BUILD MODEL #####
    ## Placeholders
-   x = tf.placeholder(tf.float32, [args.batch_size,784], name='x')
-   y = tf.placeholder(tf.int64, [args.batch_size], name='y')
-   learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-   train_phase = tf.placeholder(tf.bool, name='train_phase')
+   x = tf.compat.v1.placeholder(tf.float32, [args.batch_size,784], name='x')
+   y = tf.compat.v1.placeholder(tf.int64, [args.batch_size], name='y')
+   learning_rate = tf.compat.v1.placeholder(tf.float32, name='learning_rate')
+   train_phase = tf.compat.v1.placeholder(tf.bool, name='train_phase')
 
    # Construct model and optimizer
    pred = deep_mnist(args, x, train_phase)
@@ -141,7 +142,7 @@ def main(args):
    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
    # Optimizer
-   optim = tf.train.AdamOptimizer(learning_rate=learning_rate)
+   optim = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
    grads_and_vars = optim.compute_gradients(loss)
    modified_gvs = []
    # We precondition the phases, for faster descent, in the same way as biases
@@ -153,15 +154,15 @@ def main(args):
    
    ##### TRAIN ####
    # Configure tensorflow session
-   init_global = tf.global_variables_initializer()
-   init_local = tf.local_variables_initializer()
-   config = tf.ConfigProto()
+   init_global = tf.compat.v1.global_variables_initializer()
+   init_local = tf.compat.v1.local_variables_initializer()
+   config = tf.compat.v1.ConfigProto()
    config.gpu_options.allow_growth = True
    config.log_device_placement = False
    
    lr = args.learning_rate
-   saver = tf.train.Saver()
-   sess = tf.Session(config=config)
+   saver = tf.compat.v1.train.Saver()
+   sess = tf.compat.v1.Session(config=config)
    sess.run([init_global, init_local], feed_dict={train_phase : True})
    
    start = time.time()
@@ -180,7 +181,7 @@ def main(args):
          __, loss_, accuracy_ = sess.run([train_op, loss, accuracy], feed_dict=feed_dict)
          train_loss += loss_
          train_acc += accuracy_
-         sys.stdout.write('{:d}/{:d}\r'.format(i, data['train_x'].shape[0]/args.batch_size))
+         sys.stdout.write('{0:d}/{0:d}\r'.format(i, data['train_x'].shape[0]/args.batch_size))
          sys.stdout.flush()
       train_loss /= (i+1.)
       train_acc /= (i+1.)

@@ -1,6 +1,8 @@
 # MNIST-rot experiments
 This folder contains the script to run the MNIST-rot experiments.
 
+Tensorflow 2.0 in compatible mode
+
 #1 Run the model
 The model is defined in `mnist_model.py`. To run the code, just run  
 ```bash
