@@ -277,13 +277,14 @@ def get_filters(R, filter_size, P=None, n_rings=None):
     """Perform single-frequency DFT on each ring of a polar-resampled patch"""
     k = filter_size
     filters = {}
-    N = n_samples(k)
-    from scipy.linalg import dft
+    N: int = n_samples(k)
+    # from scipy.linalg import dft
     for m, r in R.items():
         rsh = r.get_shape().as_list()
         # Get the basis matrices
         weights = get_interpolation_weights(k, m, n_rings=n_rings)
-        DFT = dft(N)[m,:]
+        # DFT = dft(N)[m,:]
+        DFT = np.fft.fft(np.eye(N))[m, :]  # transformation matrix
         LPF = np.dot(DFT, weights).T
 
         cosine = np.real(LPF).astype(np.float32)
@@ -304,8 +305,8 @@ def get_filters(R, filter_size, P=None, n_rings=None):
     return filters
 
 
-def n_samples(filter_size):
-    return np.maximum(np.ceil(np.pi*filter_size),101) ############## <--- One source of instability
+def n_samples(filter_size) -> int:
+    return int(np.maximum(np.ceil(np.pi*filter_size),101)) ############## <--- One source of instability
 
 
 def L2_grid(center, shape):
